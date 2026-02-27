@@ -506,44 +506,7 @@ WeatherService --> OpenMeteo
 ElevationService --> ElevationAPI
 GridProximityService --> OSM
 
-%% =========================
-%% CONTAINERIZATION
-%% =========================
 
-subgraph DockerLayer["Docker Container Layer"]
-
-FrontendContainer[React Container]
-BackendContainer[FastAPI Container]
-AlgorithmContainer[Algorithm Engine Container]
-DBContainer[PostgreSQL Container]
-
-end
-
-FrontendContainer --> BackendContainer
-BackendContainer --> AlgorithmContainer
-BackendContainer --> DBContainer
-
-%% =========================
-%% KUBERNETES ORCHESTRATION
-%% =========================
-
-subgraph Kubernetes["Kubernetes Cluster"]
-
-Ingress[Ingress Controller]
-
-FrontendPod[Frontend Pod]
-BackendPod[Backend Pod]
-AlgorithmPod[Algorithm Pod]
-DBPod[Database Pod]
-
-ServiceMesh[Service Networking]
-
-end
-
-Ingress --> FrontendPod
-FrontendPod --> BackendPod
-BackendPod --> AlgorithmPod
-BackendPod --> DBPod
 
 %% =========================
 %% SECURITY LAYER
@@ -657,13 +620,7 @@ npm run dev
 
 Open **http://localhost:5173**
 
-### 4. Docker (recommended)
-```bash
-docker-compose up --build
-```
-- Frontend: http://localhost:5173
-- Backend: http://localhost:8001
-- API Docs: http://localhost:8001/docs
+
 
 ---
 
