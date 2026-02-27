@@ -1,0 +1,17 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite",
+  "regions": ["iad1"],
+  "env": {
+    "VITE_API_URL": "@vite-api-url"
+  },
+  "env.production": {
+    "VITE_API_URL": "@vite-api-url-prod"
+  },
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
+}
