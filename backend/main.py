@@ -47,7 +47,7 @@ from models import (
 from scoring import calculate_score
 from roi import calculate_roi
 from solar_service import fetch_solar_irradiance
-from wind_service import fetch_weather, fetch_wind_speed
+from wind_service import fetch_weather, fetch_wind_speed, fetch_nasa_wind_data
 from elevation_service import fetch_elevation_and_slope, fetch_elevation
 from llm_service import generate_summary, generate_decision_summary
 from database import init_db, get_db, save_analysis
@@ -480,10 +480,10 @@ async def analyze_full_pipeline(request: Request, body: AnalyzeRequest, db: Sess
     )
 
     # ── STEP 2: Concurrent fetch (solar + weather + elevation/slope) ──────
-    logger.info("[PIPELINEv3] Step 2: Fetching NASA solar + Open-Meteo weather + elevation/slope concurrently...")
+    logger.info("[PIPELINEv3] Step 2: Fetching NASA solar + weather (with optional NASA MERRA-2 wind) + elevation/slope concurrently...")
     solar, weather, elev_data = await asyncio.gather(
         fetch_solar_irradiance(body.lat, body.lng),
-        fetch_weather(body.lat, body.lng),
+        fetch_nasa_wind_data(body.lat, body.lng),
         fetch_elevation_and_slope(body.lat, body.lng),
     )
     wind        = weather["wind_speed"]
@@ -663,7 +663,7 @@ async def analyze_multi_renewable(
     logger.info("[EnerScopeAI] Step 1: Fetching climate data...")
     solar_irr, weather, elev_data = await asyncio.gather(
         fetch_solar_irradiance(body.lat, body.lng),
-        fetch_weather(body.lat, body.lng),
+        fetch_nasa_wind_data(body.lat, body.lng),
         fetch_elevation_and_slope(body.lat, body.lng),
     )
     

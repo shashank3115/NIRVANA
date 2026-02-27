@@ -3,10 +3,13 @@ HelioScope AI — Weather Data Service v2
 Fetches wind, temperature, humidity, AND cloud cover from Open-Meteo
 in a single call (efficiency: one HTTP round-trip for all weather data).
 Also adds slope estimation from nearby elevation gradient.
+Supports NASA MERRA-2 wind data for enhanced wind energy analysis.
 """
 
+import os
 import httpx
 import logging
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +99,87 @@ async def fetch_weather(lat: float, lng: float) -> dict:
 async def fetch_wind_speed(lat: float, lng: float) -> float:
     """Backward-compatible: returns just wind speed."""
     return (await fetch_weather(lat, lng))["wind_speed"]
+
+
+async def fetch_nasa_wind_data(lat: float, lng: float) -> dict:
+    """
+    Fetch wind data from NASA MERRA-2 via GES DISC API.
+    Requires NASA EARTHDATA credentials configured in .env
+    
+    Returns wind speed at 10m height (m/s) and other parameters.
+    Falls back to Open-Meteo if NASA data is unavailable.
+    """
+    # Check if NASA integration is enabled
+    nasa_enabled = os.getenv("NASA_MERRA2_ENABLED", "false").lower() == "true"
+    if not nasa_enabled:
+        # Fall back to Open-Meteo
+        return await fetch_weather(lat, lng)
+    
+    nasa_user = os.getenv("NASA_EARTHDATA_USERNAME", "").strip()
+    nasa_pass = os.getenv("NASA_EARTHDATA_PASSWORD", "").strip()
+    
+    if not nasa_user or not nasa_pass:
+        logger.warning("NASA EARTHDATA credentials not configured, using Open-Meteo")
+        return await fetch_weather(lat, lng)
+    
+    try:
+        # NASA GES DISC MERRA-2 API endpoint
+        url = "https://tes.jpl.nasa.gov/api/v8/timeseries"
+        
+        # Get current and past 7 days for averaging
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=7)
+        
+        params = {
+            "location": f"POINT({lng} {lat})",
+            "startDate": str(start_date),
+            "endDate": str(end_date),
+            "parameters": "U10M,V10M",  # 10m wind components
+            "output": "json",
+        }
+        
+        auth = (nasa_user, nasa_pass)
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(url, params=params, auth=auth)
+            resp.raise_for_status()
+            data = resp.json()
+        
+        # Extract wind speed from U10M and V10M components
+        if "Series" in data and data["Series"]:
+            u_values = []
+            v_values = []
+            
+            for entry in data["Series"]:
+                if "Data" in entry:
+                    for datapoint in entry["Data"]:
+                        if "U10M" in datapoint:
+                            u_values.append(datapoint["U10M"])
+                        if "V10M" in datapoint:
+                            v_values.append(datapoint["V10M"])
+            
+            if u_values and v_values:
+                # Calculate wind speed from components
+                avg_u = sum(u_values) / len(u_values)
+                avg_v = sum(v_values) / len(v_values)
+                wind_speed = (avg_u**2 + avg_v**2) ** 0.5
+                
+                logger.info(
+                    f"NASA MERRA-2 wind data: {wind_speed:.2f}m/s "
+                    f"(U={avg_u:.2f}, V={avg_v:.2f}) at ({lat}, {lng})"
+                )
+                
+                # Merge with Open-Meteo data for comprehensive weather
+                meteo_data = await fetch_weather(lat, lng)
+                meteo_data["wind_speed"] = round(wind_speed, 2)
+                meteo_data["data_source"] = "NASA MERRA-2 (wind) + Open-Meteo (other)"
+                return meteo_data
+        
+        logger.warning("NASA MERRA-2 returned no data, using Open-Meteo")
+        return await fetch_weather(lat, lng)
+        
+    except Exception as e:
+        logger.warning(f"NASA MERRA-2 API failed ({e}), falling back to Open-Meteo")
+        return await fetch_weather(lat, lng)
 
 
 # ── Satellite-calibrated fallback estimates ───────────────────────────────────
