@@ -1,7 +1,7 @@
-# HelioScope AI 🌞
-**Renewable Energy Placement Intelligence Platform**
+# EnerScopeAI ☀️💨
+**Multi-Renewable Energy Decision Intelligence Platform**
 
-> Hybrid multi-factor renewable energy placement optimization engine using Gaussian-sigmoid scoring, economic feasibility modeling, plant capacity planning, and adaptive regional calibration.
+> **Evolution of HelioScopeAI:** From solar-only feasibility to multi-renewable decision intelligence with confidence scoring, GO/CAUTION/NO-GO recommendations, and risk awareness.
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react)](https://react.dev)
@@ -11,11 +11,273 @@
 
 ---
 
-## 🚀 What is HelioScope AI?
+## 🎯 What is EnerScopeAI?
 
-HelioScope AI is a production-grade solar energy site selection platform that combines real-time satellite data, an 8-factor machine learning-inspired scoring engine, and AI-generated financial analysis to help individuals, developers, and enterprises find optimal rooftop and ground-mount solar locations anywhere in India (and globally).
+EnerScopeAI transforms renewable energy site selection from **"how much energy?"** to **"which renewable source should I choose, and how confident should I be?"**
 
-**Key differentiators:**
+### Key Innovation: Decision-First, Not Simulation-First
+
+EnerScopeAI compares **solar and wind energy** for any location, providing:
+- 🔄 **Multi-Renewable Comparison** — Side-by-side solar vs. wind analysis
+- 🎯 **Decision Confidence Index** — 0-100% confidence score with explainability
+- 🚦 **GO/CAUTION/NO-GO Recommendations** — Clear decision framework
+- ⚠️ **Risk Awareness Layer** — Transparent risk identification by category
+- 🏆 **Ranked Options** — Best renewable source with reasoning
+- 🤖 **Decision-Focused AI** — Plain-language guidance on what to do next
+- 🔀 **Hybrid Assessment** — Evaluates solar+wind hybrid potential
+
+### 🆕 What's New in EnerScopeAI v1.0?
+
+| Feature | HelioScopeAI (v0) | EnerScopeAI (v1.0) |
+|---------|-------------------|---------------------|
+| Energy Sources | ☀️ Solar only | ☀️ Solar + 💨 Wind comparison |
+| Output Focus | Suitability score | **Decision Confidence + Recommendation** |
+| Recommendations | A-F grades | **GO / CAUTION / NO-GO** |
+| Risk Awareness | Implicit | **Explicit risk analysis by category** |
+| Comparison | N/A | **Ranked renewable options** |
+| AI Summary | Site description | **Decision-focused guidance** |
+| User Question | "Is solar viable?" | **"Solar or wind? How confident?"** |
+
+---
+
+## ⚡ Quick Start
+
+### Test the New Multi-Renewable Endpoint
+
+```bash
+curl -X POST http://localhost:8000/api/enerscopeai/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lat": 26.92,
+    "lng": 70.90,
+    "plant_size_kw": 10,
+    "electricity_rate": 8.0,
+    "include_solar": true,
+    "include_wind": true
+  }'
+```
+
+**Response includes:**
+- Solar suitability score + confidence + GO/CAUTION/NO-GO + risk analysis
+- Wind suitability score + confidence + GO/CAUTION/NO-GO + risk analysis
+- Best renewable option (ranked)
+- Overall decision confidence index (0-100%)
+- AI decision summary in plain language
+
+📖 **Full Quick Start:** See [QUICKSTART.md](QUICKSTART.md)  
+📚 **Complete Documentation:** See [ENERSCOPEAI.md](ENERSCOPEAI.md)
+
+---
+
+## 🏗️ EnerScopeAI Architecture
+
+```
+User → React Frontend → FastAPI Backend
+                            ↓
+        ┌──────────────────────────────────────┐
+        │   Multi-Renewable Analysis Engine    │
+        ├──────────────────────────────────────┤
+        │  ☀️ Solar Suitability (v3)          │
+        │  💨 Wind Suitability (v1)           │
+        │  🎯 Decision Confidence Calculator   │
+        │  🚦 GO/CAUTION/NO-GO Engine         │
+        │  ⚠️  Risk Analyzer                   │
+        │  🔄 Comparison & Ranking Engine      │
+        │  🤖 Decision-Focused AI (Gemini)    │
+        └──────────────────────────────────────┘
+                            ↓
+        → Ranked renewable options with confidence
+        → Risk-aware recommendations
+        → Plain-language decision guidance
+```
+
+---
+
+## 🎯 Philosophy: Decision Intelligence
+
+### Traditional Tools vs. EnerScopeAI
+
+**Traditional Renewable Tools:**
+- ❌ Simulate energy output with high precision
+- ❌ Require expert knowledge to interpret
+- ❌ Focus on "how much?" not "which?"
+- ❌ Don't acknowledge uncertainty
+
+**EnerScopeAI Approach:**
+- ✅ Help non-experts confidently DECIDE
+- ✅ Compare multiple renewable sources
+- ✅ Quantify and explain confidence
+- ✅ Transparent about uncertainty and risk
+- ✅ Provide actionable next steps
+
+### Target Users
+
+- 🏠 **Homeowners** — "Should I install solar or wind?"
+- 💼 **Small Investors** — "Which renewable source is best for my budget?"
+- 🎓 **Students** — "Learn about renewable decision-making"
+- 📊 **Planners** — "Pre-feasibility screening for projects"
+
+---
+
+## 🚀 Key Features Explained
+
+### 1. Decision Confidence Index (DCI)
+
+**What is it?** A 0-100% score representing how reliable the recommendation is.
+
+**Factors considered:**
+- Data quality (completeness, freshness)
+- Weather stability (variability, seasonal patterns)
+- Score clarity (clearly good vs. borderline)
+- Economic viability (ROI certainty)
+- Constraint certainty (hard blockers)
+
+**Example:**
+- **85% confidence:** "High confidence - proceed with standard due diligence"
+- **62% confidence:** "Moderate confidence - professional assessment recommended"
+- **43% confidence:** "Low confidence - site-specific measurements required"
+
+### 2. GO/CAUTION/NO-GO Recommendations
+
+**Clear decision framework:**
+
+- 🟢 **GO:** High suitability (≥65) + high confidence (≥60%) + good ROI (≤7 years)
+  - *Action: Proceed with detailed planning and quotes*
+
+- 🟡 **CAUTION:** Moderate suitability OR moderate confidence OR marginal ROI
+  - *Action: Get professional feasibility study before major investment*
+
+- 🔴 **NO-GO:** Low suitability (<40) OR critical constraints OR poor ROI (>15 years)
+  - *Action: Explore alternative locations or energy sources*
+
+### 3. Risk Awareness Layer
+
+**Transparent risk identification in 5 categories:**
+
+1. **Technical/Environmental** — Resource quality, terrain, weather variability
+2. **Economic/Financial** — Payback uncertainty, cost sensitivity, price changes
+3. **Policy/Regulatory** — Subsidies, permits, net metering changes
+4. **Operational/Maintenance** — Component failures, degradation, servicing
+5. **Data/Uncertainty** — Measurement gaps, microclimate unknowns
+
+Each risk includes **mitigation suggestions** and identifies **show-stoppers**.
+
+### 4. Multi-Renewable Comparison
+
+**Side-by-side analysis:**
+- Solar and wind evaluated independently
+- Ranked by composite viability score
+- Key strengths and weaknesses identified
+- Hybrid system potential assessed
+
+**Composite Viability Formula:**
+```
+Viability = (
+    suitability_score × 0.40 +
+    confidence_index × 0.30 +
+    economic_score × 0.20 +
+    recommendation_bonus × 0.10
+)
+```
+
+---
+
+## 📊 Example Use Cases
+
+### Case 1: Clear Solar Winner (Rajasthan Desert)
+
+**Input:** Jodhpur, India (26.92°N, 70.90°E), 10 kW system
+
+**Output:**
+- ☀️ **Solar:** 92/100, 94% confidence, **GO** recommendation
+- 💨 **Wind:** 48/100, 62% confidence, **CAUTION** recommendation
+- 🏆 **Best Option:** Solar (clearly superior)
+- 🎯 **Overall Confidence:** 88% (Very High)
+- 💡 **AI Guidance:** "Proceed with solar — excellent resource and high confidence. Get quotes from 3 installers."
+
+### Case 2: Marginal Site (Urban + High Clouds)
+
+**Input:** Mumbai suburbs, 10 kW system
+
+**Output:**
+- ☀️ **Solar:** 56/100, 71% confidence, **CAUTION** recommendation
+- 💨 **Wind:** 42/100, 58% confidence, **CAUTION** recommendation
+- 🏆 **Best Option:** Solar (marginally better)
+- 🎯 **Overall Confidence:** 61% (Moderate)
+- 💡 **AI Guidance:** "Solar slightly better, but neither option is strong. Professional feasibility study required before investment."
+
+### Case 3: Poor Site (Dense Urban)
+
+**Input:** Central Delhi, 10 kW system
+
+**Output:**
+- ☀️ **Solar:** 34/100, 78% confidence, **NO-GO** recommendation
+- 💨 **Wind:** 29/100, 71% confidence, **NO-GO** recommendation
+- 🏆 **Best Option:** Neither
+- 🎯 **Overall Confidence:** 75% (High - confident it's not viable)
+- 💡 **AI Guidance:** "Renewable energy not recommended at this location. Explore alternative sites or grid renewable programs."
+
+---
+
+## 🎓 Educational Value & Hackathon Relevance
+
+### Why EnerScopeAI Stands Out
+
+1. **Novel Approach:** Shifts from simulation to decision intelligence
+2. **Practical Impact:** Addresses real user pain point ("which renewable?")
+3. **Honest About Limitations:** Conservative, transparent about uncertainty
+4. **Modular Architecture:** Easy to extend (add hydro, geothermal, etc.)
+5. **Well-Scoped:** Realistic for hackathon (24h implementation)
+
+### Technical Highlights
+
+- **New Services:** 4 new decision intelligence modules
+- **Enhanced Models:** 7 new Pydantic data models
+- **API Design:** RESTful with clear semantics
+- **Frontend:** React comparison component with visual hierarchy
+- **AI Integration:** Decision-focused prompting strategy
+
+---
+
+## 📚 Documentation
+
+- 📘 **[ENERSCOPEAI.md](ENERSCOPEAI.md)** — Complete technical documentation
+- 🚀 **[QUICKSTART.md](QUICKSTART.md)** — Get started in 5 minutes
+- 📖 **[DOCUMENTATION.md](DOCUMENTATION.md)** — Original HelioScopeAI docs
+- 🎤 **[PITCHDECK.md](PITCHDECK.md)** — Investor pitch (HelioScope AI)
+
+---
+
+## ⚠️ Important Disclaimers
+
+### What EnerScopeAI IS:
+✅ Decision intelligence tool for comparing renewable options  
+✅ Confidence-aware recommendations for non-experts  
+✅ Transparent about uncertainty and risk  
+✅ Hackathon-scale proof-of-concept
+
+### What EnerScopeAI IS NOT:
+❌ Engineering-grade simulation tool  
+❌ Replacement for professional site assessment  
+❌ Full wind turbine design software  
+❌ Financial investment advice  
+
+**Recommendation:** Use EnerScopeAI for preliminary screening and decision-making. Follow up with professional feasibility studies for projects > 50 kW or when confidence < 70%.
+
+---
+
+# HelioScope AI 🌞 (Original Platform)
+**Renewable Energy Placement Intelligence Platform**
+
+> Foundation platform: Hybrid multi-factor renewable energy placement optimization engine using Gaussian-sigmoid scoring, economic feasibility modeling, plant capacity planning, and adaptive regional calibration.
+
+---
+
+## 🚀 What was HelioScope AI?
+
+HelioScope AI is the production-grade solar energy site selection platform that serves as the foundation for EnerScopeAI. It combines real-time satellite data, an 8-factor machine learning-inspired scoring engine, and AI-generated financial analysis to help find optimal solar locations.
+
+**Core HelioScope AI features (retained in EnerScopeAI):**
 - 🛰️ **Real NASA + Open-Meteo data** — not static tables
 - 🧮 **8-factor Gaussian-sigmoid algorithm** — calibrated to real-world solar performance
 - 🏭 **Plant-size capacity planning** — 10/20/30/50 kW or custom
@@ -33,7 +295,7 @@ HelioScope AI is a production-grade solar energy site selection platform that co
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Original Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐

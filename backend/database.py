@@ -1,6 +1,7 @@
 """
-HelioScope AI — Database Layer
+EnerScopeAI — Database Layer
 SQLAlchemy models + session management for storing analysis results.
+Supabase PostgreSQL is supported via SUPABASE_URL.
 """
 
 import os
@@ -19,20 +20,25 @@ logger = logging.getLogger(__name__)
 # Build the connection URL from separate components to safely handle
 # special characters in the password (e.g. @ $ in "Heli0$cope@i")
 def _build_db_url() -> str | None:
+    # Supabase-first for deployable production backend
+    supabase_url = os.getenv("SUPABASE_URL", "")
+    if supabase_url:
+        return supabase_url
+
     # Accept a full URL override (raw string, not URL-parsed by us)
     raw_url = os.getenv("DATABASE_URL", "")
-    if raw_url and not raw_url.startswith("postgresql://helioscope:Heli0"):
-        return raw_url   # custom override, pass through
+    if raw_url:
+        return raw_url
 
     # Build from individual env vars (safest for special-char passwords)
     from sqlalchemy.engine import URL as SAUrl
     return SAUrl.create(
-        drivername="postgresql+psycopg2",
-        username=os.getenv("POSTGRES_USER", "helioscope"),
-        password=os.getenv("POSTGRES_PASSWORD", "Heli0$cope@i"),
+        drivername="postgresql+psycopg",
+        username=os.getenv("POSTGRES_USER", "enerscope"),
+        password=os.getenv("POSTGRES_PASSWORD", "Ener$cope@i"),
         host=os.getenv("POSTGRES_HOST", "localhost"),
         port=int(os.getenv("POSTGRES_PORT", "5432")),
-        database=os.getenv("POSTGRES_DB", "helioscope"),
+        database=os.getenv("POSTGRES_DB", "enerscope"),
     )
 
 # ── Engine ────────────────────────────────────────────────────────────────────
@@ -47,9 +53,10 @@ def init_db():
         db_url = _build_db_url()
         engine = create_engine(
             db_url,
-            pool_pre_ping=True,
+            pool_pre_ping=False,
             pool_size=5,
             max_overflow=10,
+            connect_args={"connect_timeout": 3},  # 3-second timeout for quick failure
         )
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         Base.metadata.create_all(bind=engine)
@@ -57,6 +64,9 @@ def init_db():
         return True
     except OperationalError as e:
         logger.warning(f"⚠️  Database unavailable — running in stateless mode. ({e})")
+        return False
+    except Exception as e:
+        logger.warning(f"⚠️  Database connection failed — running in stateless mode. ({e})")
         return False
 
 

@@ -1,9 +1,10 @@
 """
-HelioScope AI — Pydantic Data Models v3
-Supports 8-factor scoring engine, plant-size capacity planning, confidence score.
+EnerScopeAI — Pydantic Data Models v4
+Supports multi-renewable comparison, decision confidence index, GO/CAUTION/NO-GO recommendations,
+and risk awareness for solar and wind energy sources.
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any, Literal
 
 
 # ── Location / Climate ─────────────────────────────────────────────────────────
@@ -167,3 +168,171 @@ class AnalyzeResponse(BaseModel):
     # ── AI Summary ────────────────────────────────────────────────────────
     ai_summary: str
     ai_generated_by: str
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ENERSCOPEAI v4 — Multi-Renewable Decision Intelligence Models
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class RenewableOptionAnalysis(BaseModel):
+    """Analysis result for a single renewable energy source."""
+    energy_source: str
+    emoji: str
+    suitability_score: int
+    confidence_index: int
+    recommendation: Literal["GO", "CAUTION", "NO-GO"]
+    composite_viability: float
+    payback_years: float
+    annual_output_kwh: float
+    key_strength: str
+    key_weakness: str
+
+
+class DecisionConfidence(BaseModel):
+    """Decision Confidence Index and supporting data."""
+    confidence_index: int  # 0-100
+    confidence_label: str  # Very High / High / Moderate / Low / Very Low
+    confidence_emoji: str
+    confidence_factors: Dict[str, Any]
+    uncertainty_sources: List[str]
+    reliable_decision: bool
+    explanation: str  # Plain language explanation
+
+
+class RecommendationDetail(BaseModel):
+    """GO/CAUTION/NO-GO recommendation with reasoning."""
+    recommendation: Literal["GO", "CAUTION", "NO-GO"]
+    reason: str
+    action_items: List[str]
+    risk_level: str
+    confidence_in_recommendation: int
+
+
+class RiskAnalysis(BaseModel):
+    """Risk awareness analysis."""
+    risk_level: str  # High / Medium / Low
+    risk_emoji: str
+    total_risks_identified: int
+    show_stoppers: List[str]
+    risks_by_category: Dict[str, List[str]]
+    mitigation_suggestions: List[str]
+    risk_score: int  # 0-100, higher = more risk
+    risk_summary: str
+
+
+class HybridPotential(BaseModel):
+    """Assessment of hybrid renewable system potential."""
+    recommended: bool
+    reason: str
+    score: float
+    benefit: Optional[str] = None
+
+
+class ComparisonSummary(BaseModel):
+    """Multi-renewable comparison summary."""
+    ranked_options: List[RenewableOptionAnalysis]
+    best_option: Optional[RenewableOptionAnalysis]
+    comparison_text: str
+    hybrid_potential: HybridPotential
+    total_options_analyzed: int
+
+
+# ── EnerScopeAI Multi-Renewable Request ────────────────────────────────────────
+
+class MultiRenewableRequest(BaseModel):
+    """
+    EnerScopeAI multi-renewable analysis request.
+    Evaluates and compares solar and wind energy for a given location.
+    """
+    lat: float = Field(..., ge=-90, le=90)
+    lng: float = Field(..., ge=-180, le=180)
+    
+    # System sizing
+    plant_size_kw: float = Field(default=10.0, gt=0, description="Desired system size in kW")
+    
+    # Economic parameters
+    electricity_rate: float = Field(default=8.0, description="₹/kWh or local currency")
+    installation_cost_solar: Optional[float] = Field(default=None, description="₹ (auto if None)")
+    installation_cost_wind: Optional[float] = Field(default=None, description="₹ (auto if None)")
+    
+    # Optional hints
+    grid_distance_km: Optional[float] = Field(default=None, ge=0)
+    available_area_m2: Optional[float] = Field(default=None, ge=0)
+    
+    # Options
+    include_solar: bool = Field(default=True)
+    include_wind: bool = Field(default=True)
+
+
+# ── EnerScopeAI Multi-Renewable Response ───────────────────────────────────────
+
+class EnerScopeResponse(BaseModel):
+    """
+    EnerScopeAI comprehensive multi-renewable decision intelligence response.
+    """
+    # ── Metadata ──────────────────────────────────────────────────────────
+    analysis_type: str = "multi-renewable-comparison"
+    platform_version: str = "EnerScopeAI-v1.0"
+    
+    # ── Location & Climate ────────────────────────────────────────────────
+    lat: float
+    lng: float
+    solar_irradiance: float
+    wind_speed: float
+    elevation: float
+    temperature_c: float
+    humidity_pct: float
+    cloud_cover_pct: float
+    slope_degrees: float
+    
+    # ── Solar Analysis ────────────────────────────────────────────────────
+    solar_suitability_score: int
+    solar_grade: str
+    solar_suitability_class: str
+    solar_constraint_violations: List[str]
+    solar_payback_years: float
+    solar_annual_output_kwh: float
+    solar_confidence_index: int
+    solar_recommendation: RecommendationDetail
+    
+    # ── Wind Analysis ─────────────────────────────────────────────────────
+    wind_suitability_score: int
+    wind_grade: str
+    wind_suitability_class: str
+    wind_constraint_violations: List[str]
+    wind_payback_years: float
+    wind_annual_output_kwh: float
+    wind_confidence_index: int
+    wind_recommendation: RecommendationDetail
+    wind_class: str
+    wind_capacity_factor: int
+    
+    # ── Hydro Analysis ────────────────────────────────────────────────────
+    hydro_suitability_score: Optional[int] = None
+    hydro_grade: Optional[str] = None
+    hydro_suitability_class: Optional[str] = None
+    hydro_constraint_violations: Optional[List[str]] = None
+    hydro_payback_years: Optional[float] = None
+    hydro_annual_output_kwh: Optional[float] = None
+    hydro_confidence_index: Optional[int] = None
+    hydro_recommendation: Optional[RecommendationDetail] = None
+    hydro_head_meters: Optional[float] = None
+    hydro_flow_l_s: Optional[float] = None
+    
+    # ── Decision Intelligence ─────────────────────────────────────────────
+    comparison: ComparisonSummary
+    best_renewable_option: str  # "Solar" / "Wind" / "Hydro" / "Neither" / "Hybrid"
+    overall_decision_confidence: DecisionConfidence
+    
+    # ── Risk Awareness ────────────────────────────────────────────────────
+    solar_risk_analysis: RiskAnalysis
+    wind_risk_analysis: RiskAnalysis
+    hydro_risk_analysis: Optional[RiskAnalysis] = None
+    
+    # ── AI Explanation ────────────────────────────────────────────────────
+    ai_decision_summary: str  # Decision-focused explanation
+    ai_generated_by: str
+    
+    # ── Economic Summary ──────────────────────────────────────────────────
+    best_option_economics: Dict[str, Any]

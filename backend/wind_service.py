@@ -20,6 +20,7 @@ async def fetch_weather(lat: float, lng: float) -> dict:
       temperature_c (°C)    — 7-day hourly avg at 2m
       humidity_pct  (%)     — 7-day hourly avg
       cloud_cover_pct (%)   — 7-day hourly avg (critical for scoring v3)
+      rainfall_mm   (mm)    — 7-day total precipitation
     """
     params = {
         "latitude":  round(lat, 4),
@@ -28,7 +29,8 @@ async def fetch_weather(lat: float, lng: float) -> dict:
             "wind_speed_10m,"
             "temperature_2m,"
             "relative_humidity_2m,"
-            "cloudcover"           # cloud cover % per hour
+            "cloudcover,"           # cloud cover % per hour
+            "precipitation"         # precipitation mm per hour
         ),
         "current": "wind_speed_10m,temperature_2m,cloudcover",
         "wind_speed_unit": "ms",
@@ -47,24 +49,33 @@ async def fetch_weather(lat: float, lng: float) -> dict:
         def _avg(key: str) -> float | None:
             vals = [v for v in hourly.get(key, []) if v is not None]
             return round(sum(vals) / len(vals), 2) if vals else None
+        
+        def _sum(key: str) -> float | None:
+            vals = [v for v in hourly.get(key, []) if v is not None]
+            return round(sum(vals), 2) if vals else None
 
         avg_wind  = _avg("wind_speed_10m")
         avg_temp  = _avg("temperature_2m")
         avg_hum   = _avg("relative_humidity_2m")
         avg_cloud = _avg("cloudcover")
+        total_precip = _sum("precipitation")
+
+        # Estimate annual rainfall from 7-day sample
+        annual_rainfall = (total_precip * 52) if total_precip is not None else _est_rainfall(lat)
 
         result = {
             "wind_speed":      avg_wind  if avg_wind  is not None else _est_wind(lat),
             "temperature_c":   avg_temp  if avg_temp  is not None else _est_temp(lat),
             "humidity_pct":    avg_hum   if avg_hum   is not None else _est_humidity(lat),
             "cloud_cover_pct": avg_cloud if avg_cloud is not None else _est_cloud(lat),
-            "data_sources":    4,   # all four metrics from live API
+            "rainfall_mm":     annual_rainfall,
+            "data_sources":    5,   # all five metrics from live API
         }
 
         logger.info(
             f"Open-Meteo v2: wind={result['wind_speed']}m/s "
             f"temp={result['temperature_c']}°C hum={result['humidity_pct']}% "
-            f"cloud={result['cloud_cover_pct']}% (lat={lat}, lng={lng})"
+            f"cloud={result['cloud_cover_pct']}% rain={result['rainfall_mm']}mm (lat={lat}, lng={lng})"
         )
         return result
 
@@ -76,6 +87,7 @@ async def fetch_weather(lat: float, lng: float) -> dict:
         "temperature_c":   _est_temp(lat),
         "humidity_pct":    _est_humidity(lat),
         "cloud_cover_pct": _est_cloud(lat),
+        "rainfall_mm":     _est_rainfall(lat),
         "data_sources":    1,   # only estimates, lower confidence
     }
 
@@ -124,3 +136,14 @@ def _est_cloud(lat: float) -> float:
     if a <= 40: return 45.0   # Mediterranean / temperate
     if a <= 55: return 65.0   # Northern Europe
     return 75.0               # Sub-polar / polar — very cloudy
+
+
+def _est_rainfall(lat: float) -> float:
+    """Climatological annual rainfall estimate (mm/year) by latitude."""
+    a = abs(lat)
+    if a <= 10: return 1800.0   # Tropical wet belt
+    if a <= 20: return 1100.0   # Monsoon/subtropical
+    if a <= 30: return 700.0    # Semi-arid regions
+    if a <= 40: return 850.0    # Temperate
+    if a <= 55: return 950.0    # Maritime temperate
+    return 500.0                # Cold/arid high latitudes
